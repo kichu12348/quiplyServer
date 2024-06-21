@@ -3,7 +3,7 @@ const {addMessage}=require('../controllers/message')
 
 const handleSockets = (io)=>{
     io.on('connection', (socket) => {
-        console.log('New user connected');
+       
         
 
         socket.on('joinID',({id})=>{
@@ -28,7 +28,7 @@ const handleSockets = (io)=>{
 
 
         socket.on('disconnect', () => {
-          console.log('User disconnected');
+          return;
         });
       });
 }
