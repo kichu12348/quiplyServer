@@ -1,9 +1,9 @@
 const Message = require('../models/message');
 
 const addMessage = async ({message})=>{
-    const {id,sender,msg,time,roomID} = message;
+    const {id,sender,msg,time,roomID,isSticker,sticker} = message;
     try{
-        const newMessage = new Message({id,sender,roomID,msg,time});
+        const newMessage = new Message({id,sender,roomID,msg,time,isSticker,sticker});
         await newMessage.save();
     }catch(err){
         console.log(err);
