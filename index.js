@@ -12,7 +12,7 @@ const port = process.env.PORT
 connectToDb(process.env.MONGO_URI)
 
 app.get('/', (req, res) => {
-  res.json({ response: 'I am alive' });
+  res.json({ message: 'I am alive' });
 });
 
 app.use(express.json());
