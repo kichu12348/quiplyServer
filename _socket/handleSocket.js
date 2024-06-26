@@ -23,6 +23,10 @@ const handleSockets = (io)=>{
           io.to(message.roomID).emit("newMessage",message);  
           await addMessage({message});
         })
+        
+        socket.on("typing",({roomID,user})=>{
+          io.to(roomID).emit("typing",{id:user});
+        })
 
         
 

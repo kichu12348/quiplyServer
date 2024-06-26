@@ -21,6 +21,10 @@ const messageSchema = new mongoose.Schema({
     sticker:{
         type:String,
         default:null
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 },{
     timestamps: true
