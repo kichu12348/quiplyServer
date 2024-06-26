@@ -18,7 +18,7 @@ const backupSchema = new mongoose.Schema({
       },
       msg: {
         type: String,
-        required: true,
+        default: "",
       },
       time: {
         type: String,
