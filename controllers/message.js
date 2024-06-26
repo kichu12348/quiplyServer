@@ -67,8 +67,8 @@ const deleteMessages = async (messageId) => {
 
 const backupMessages = async (id, messages) => {
   try {
-    const checkBackup = await Backup.find({ id });
-    if (checkBackup.length > 0) {
+    const checkBackup = await Backup.findOne({ id });
+    if (checkBackup) {
       await Backup.findOneAndDelete({ id });
     }
     const backup = new Backup({
