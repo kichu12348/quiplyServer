@@ -76,10 +76,10 @@ const backupMessages = async (id, messages) => {
       messages,
     });
     await backup.save();
-    return true;
+    return { success: true}
   } catch (err) {
-    console.log(err.message);
-    return false;
+    console.log(err);
+    return { success: false, error: { message: err.message } };
   }
 };
 

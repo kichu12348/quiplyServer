@@ -23,9 +23,9 @@ router.post('/check',async (req,res)=>{
 router.post('/backup',Auth,async (req,res)=>{
     const {messages} = req.body;
     const {user} = req.user;
-    const ok =await backupMessages(user.id,messages);
-    if(!ok){
-        return res.json({success:false});
+    const {success,error} =await backupMessages(user.id,messages);
+    if(!success){
+        return res.json({success:false,error:{message:error.message}});
     }
     return res.json({success:true});
 })
