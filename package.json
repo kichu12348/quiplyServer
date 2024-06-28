@@ -1,11 +1,11 @@
 {
   "name": "server",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "bun run index.js",
-    "dev": "nodemon --exec bun run index.js"
+    "start": "bun index.js",
+    "dev": "nodemon --exec bun index.js"
   },
   "keywords": [],
   "author": "",
