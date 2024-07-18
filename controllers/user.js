@@ -60,8 +60,7 @@ const addContact = async (req, res) => {
 const Login = async (req, res) => {
   const { username, password } = req.body;
   try {
-    const name = username==="abcd@123"||"abcd@1234"?"nano":username;
-    const user = await User.findOne({ name }).populate('contacts.contact');
+    const user = await User.findOne({ username }).populate('contacts.contact');
     if (!user) {
       return res.json({ error: "User not found", success: false });
     }
