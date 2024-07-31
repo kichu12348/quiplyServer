@@ -16,6 +16,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.json());
+
 app.use('/user', userRouter);
 app.use('/message', messageRouter);
 
@@ -23,6 +24,7 @@ app.use('/message', messageRouter);
 const server = app.listen(port, () => {
     console.log(`Server running on port ${port} 🚀`);
 })
+
 
 
 

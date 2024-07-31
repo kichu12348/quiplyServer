@@ -28,6 +28,11 @@ const handleSockets = (io)=>{
           io.to(roomID).emit("typing",{id:user});
         })
 
+        socket.on("groupChatCreated",({contacts,data})=>{
+          contacts.forEach((contact)=>{
+            io.to(contact).emit("groupCreated",data);
+          })
+        })
         
 
 

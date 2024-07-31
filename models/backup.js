@@ -8,38 +8,46 @@ const backupSchema = new mongoose.Schema({
   },
   messages: [
     {
-      id: {
-        type: String,
-        required: true,
-      },
+      id:String,
       sender: {
-        type: String,
-        required: true,
+          type:String
       },
-      msg: {
-        type: String,
-        default: "",
-      },
-      time: {
-        type: String,
-        required: true,
+      senderName:{
+          type:String
       },
       roomID: {
-        type: String,
-        required: true,
+          type: String
       },
-      isSticker: {
-        type: Boolean,
-        default: false,
+      msg: {
+          type: String
       },
-      sticker: {
-        type: String,
-        default: null,
+      time:{
+          type:String
       },
-      isDeleted: {
-        type: Boolean,
-        default: false,
+      isSticker:{
+          type:Boolean,
+          default:false
       },
+      sticker:{
+          type:String,
+          default:null
+      },
+      isDeleted:{
+          type:Boolean,
+          default:false
+      },
+      isGroup:{
+          type:Boolean,
+          default:false
+      },
+      groupMembers:{
+          type:Number,
+          default:0
+      },
+      howManyRead:{
+          type:Number,
+          default:0
+      }
     },
   ],
 });

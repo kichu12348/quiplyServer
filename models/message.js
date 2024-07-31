@@ -5,6 +5,9 @@ const messageSchema = new mongoose.Schema({
     sender: {
         type:String
     },
+    senderName:{
+        type:String
+    },
     roomID: {
         type: String
     },
@@ -25,6 +28,18 @@ const messageSchema = new mongoose.Schema({
     isDeleted:{
         type:Boolean,
         default:false
+    },
+    isGroup:{
+        type:Boolean,
+        default:false
+    },
+    howManyRead:{
+        type:Number,
+        default:0
+    },
+    readBy:{
+        type:Array,
+        default:[]
     }
 },{
     timestamps: true

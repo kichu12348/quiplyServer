@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    isGroup:{
+        type: Boolean,
+        default: false
+    },
+    noOfMembers:{
+        type: Number,
+        default: 0
+    },
     contacts:[
         {
         contact:{

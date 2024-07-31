@@ -51,7 +51,14 @@ const addContact = async (req, res) => {
       contact.contacts.push({contact:id,roomID:roomID});
       await user.save();
       await contact.save();
-      return res.json({ success: true, contact: { username: contact.username, id: contact._id, roomID ,time:Date.now()}});
+      return res.json({ success: true, contact: { 
+        username: contact.username, 
+        id: contact._id, 
+        roomID ,
+        time:Date.now(),
+        isGroup:false,
+        noOfMembers:0
+      }});
     } catch (err) {
       return res.json({ error: "Internal server error", success: false });
     }
@@ -60,8 +67,8 @@ const addContact = async (req, res) => {
 const Login = async (req, res) => {
   const { username, password } = req.body;
   try {
-    const name = username==="abcd@123"||"abcd@1234"?"nano":username;
-    const user = await User.findOne({ name }).populate('contacts.contact');
+    // const name = username==="abcd@123"||"abcd@1234"?"nano":username;
+    const user = await User.findOne({ username }).populate('contacts.contact');
     if (!user) {
       return res.json({ error: "User not found", success: false });
     }
@@ -107,6 +114,7 @@ const queryUsers=async(req,res)=>{
    const list = await User.find({username:{$regex:query, $options:'i'}});
   let users=[];
   list.forEach((user)=>{
+    if(user.isGroup) return;
     users.push({username:user.username,id:user._id});
   });
   return res.json({success:true, list:users});
@@ -137,12 +145,56 @@ const checkAuth=async (req,res)=>{
     }
 }
 
+async function createGroup(req,res){
+  const {user}=req.user;
+  const {groupName,contacts}=req.body;
+  if(!groupName || !contacts){
+    return res.json({error:'Invalid data',success:false});
+  }
+  const roomID = crypto.randomBytes(32).toString('hex');
+  const users = await User.find({_id:{$in:contacts}});
+  if(!users){
+    return res.json({error:'Users not found',success:false});
+  }
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.createHmac('sha256',salt).update(roomID).digest('hex');
+  const noOfMembers = users.length+1;
+
+  const group = await User.create({
+    username:groupName,
+    salt,
+    hash,
+    isGroup:true,
+    noOfMembers,
+    contacts:[]
+  });
+
+  users.forEach(async (u)=>{
+    group.contacts.push({contact:u._id,roomID});
+    u.contacts.push({contact:group._id,roomID});
+    await u.save();
+  });
+  group.contacts.push({contact:user.id,roomID});
+  await group.save();
+  return res.json({success:true,contact:{
+    username:group.username,
+    id:group._id,
+    noOfMembers:noOfMembers,
+    isGroup:true,
+    time:Date.now(),
+    roomID
+  }});
+}
+
+
+
 module.exports = {
     Login,
     Register,
     addContact,
     queryUsers,
     getContacts,
-    checkAuth
+    checkAuth,
+    createGroup
 }
 
