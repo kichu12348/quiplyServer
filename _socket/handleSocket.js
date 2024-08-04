@@ -34,6 +34,11 @@ const handleSockets = (io)=>{
           })
         })
         
+        socket.on("updateContact",({updateContact,contacts})=>{
+          contacts.forEach((contact)=>{
+            io.to(contact).emit("updateContacT",updateContact);
+          })
+        })
 
 
         socket.on('disconnect', () => {

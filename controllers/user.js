@@ -185,6 +185,45 @@ async function createGroup(req,res){
   }});
 }
 
+async function addUserToGroup(req,res){
+  const {groupId,users}=req.body;
+  if(!groupId || users.length===0){
+    return res.json({error:'Invalid data',success:false});
+  }
+  const group = await User.findById(groupId);
+  if(!group){
+    return res.json({error:'Group not found',success:false});
+  }
+  const noOfMembers = group.noOfMembers+users.length;
+
+  const usersT = await User.find({_id:{$in:users}});
+  if(!usersT){
+    return res.json({error:'Users not found',success:false});
+  }
+  usersT.forEach(async (u)=>{
+    if(group.contacts.find((c)=>c.contact.toString()===u._id.toString())){
+      return;
+    }
+    group.contacts.push({contact:u._id,roomID:group.roomID});
+    u.contacts.push({contact:group._id,roomID:group.roomID});
+    await u.save();
+  });
+  if(group.contacts.length===noOfMembers){
+    return res.json({error:'Users not added',success:false});
+  }
+  group.noOfMembers=noOfMembers;
+  await group.save();
+
+  res.json({success:true,contact:{
+    username:group.username,
+    id:group._id,
+    noOfMembers:noOfMembers,
+    isGroup:true,
+    time:Date.now(),
+    roomID:group.roomID,
+  }});
+}
+
 
 
 module.exports = {
@@ -194,6 +233,7 @@ module.exports = {
     queryUsers,
     getContacts,
     checkAuth,
-    createGroup
+    createGroup,
+    addUserToGroup
 }
 
