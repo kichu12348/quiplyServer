@@ -1,5 +1,7 @@
 const Message = require("../models/message");
 const Backup = require("../models/backup");
+const fs = require("fs");
+const path = require("path");
 
 const addMessage = async ({ message }) => {
   const {
@@ -35,6 +37,8 @@ const addMessage = async ({ message }) => {
       sticker,
       isDeleted,
       isGroup,
+      isImage: message.isImage,
+      imageUri: message.imageUri,
     });
     await newMessage.save();
   } catch (err) {
@@ -68,15 +72,26 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
             sticker: message?.sticker,
             isDeleted: message.isDeleted,
             isGroup: message.isGroup,
+            isImage: message.isImage,
+            imageUri: message.imageUri,
           });
           if (message.howManyRead >= howManyRead) {
+          setTimeout(async () => {
+            if (message.isImage) {
+              await deleteImageFile(message.imageUri,(err,deleted)=>{
+                if(err){
+                  console.log(err);
+                }
+              });
+            }
             await Message.findOneAndDelete({ id: message.id });
+          }, 3000);
           } else {
             message.save();
           }
         }
       }
-      if(message.sender !== userId && !isGroup) {
+      if (message.sender !== userId && !isGroup) {
         list.push({
           id: message.id,
           sender: message.sender,
@@ -88,6 +103,8 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
           sticker: message?.sticker,
           isDeleted: message.isDeleted,
           isGroup: message.isGroup,
+          isImage: message.isImage,
+          imageUri: message.imageUri,
         });
       }
     });
@@ -97,7 +114,13 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
   }
 };
 
-const deleteMessages = async ({ messageId, isGroup, noOfMembers, sender }) => {
+const deleteMessages = async ({
+  messageId,
+  isGroup,
+  noOfMembers,
+  sender,
+  isImage,
+}) => {
   const howManyRead = noOfMembers - 1;
 
   try {
@@ -106,13 +129,28 @@ const deleteMessages = async ({ messageId, isGroup, noOfMembers, sender }) => {
 
       if (!message) return false;
       if (message.howManyRead === howManyRead && message.sender !== sender) {
+        if (message.isImage) {
+          await deleteImageFile(message.imageUri, (err, deleted) => {
+            if (err) {
+              console.log(err);
+            }
+          });
+        }
         await Message.findOneAndDelete({ id: messageId });
         return true;
       }
       return true;
     }
-
     if (!messageId) return false;
+    if (isImage) {
+      const message = await Message.findOne({ id: messageId });
+      if (!message) return false;
+      await deleteImageFile(message.imageUri, (err, deleted) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }
     await Message.findOneAndDelete({ id: messageId });
     return true;
   } catch (err) {
@@ -156,6 +194,82 @@ const deleteBackup = async (id) => {
   }
 };
 
+const deleteImageFile = (fileName, callback) => {
+  const filePath = path.join(__dirname, "../uploads", fileName);
+
+  fs.access(filePath, (err) => {
+    if (err) {
+      if (err.code === "ENOENT") {
+        return callback(null, false);
+      } else {
+        return callback(err, false);
+      }
+    }
+
+    fs.unlink(filePath, (unlinkErr) => {
+      if (unlinkErr) {
+        return callback(unlinkErr, false);
+      }
+
+      callback(null, true);
+    });
+  });
+};
+
+async function uploadImageChunks(req, res) {
+  const { chunk, chunkIdx, totalChunks, fileName } = req.body;
+  const uploadDir = path.join(__dirname, "../uploads");
+  const filePath = path.join(uploadDir, fileName);
+
+  // check if uploads dir exists
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+  }
+
+
+  //append the chunk
+  if (fs.existsSync(filePath)) {
+    fs.appendFileSync(filePath, Buffer.from(chunk, "base64"));
+  } else {
+    // Create the file and write the first chunk
+    fs.writeFileSync(filePath, Buffer.from(chunk, "base64"));
+  }
+
+  // Check if its the last chunk
+  if (chunkIdx === totalChunks - 1) {
+    return res.status(200).json({
+      success: true,
+      done: true,
+      uri: fileName,
+    });
+  } else {
+    return res.status(200).json({
+      success: true,
+      done: false,
+      uri: null,
+    });
+  }
+}
+
+async function sendFileToClient(req, res) {
+  const { fileName } = req.query;
+
+  const filePath = path.join(__dirname, "../uploads", fileName);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ success: false, message: "File not found" });
+  }
+
+  res.download(filePath, fileName, (err) => {
+    if (err) {
+      console.error("Error downloading file:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Error downloading file" });
+    }
+  });
+}
+
 module.exports = {
   addMessage,
   checkMessages,
@@ -163,4 +277,6 @@ module.exports = {
   backupMessages,
   getBackup,
   deleteBackup,
+  uploadImageChunks,
+  sendFileToClient,
 };

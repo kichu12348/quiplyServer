@@ -40,7 +40,15 @@ const messageSchema = new mongoose.Schema({
     readBy:{
         type:Array,
         default:[]
-    }
+    },
+    isImage:{
+        type:Boolean,
+        default:false
+    },
+    imageUri:{
+        type:String,
+        default:null
+    },
 },{
     timestamps: true
 })

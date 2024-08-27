@@ -1,6 +1,8 @@
 const {addMessage}=require('../controllers/message')
 
 
+let currentPlayerColor = 'w';
+
 const handleSockets = (io)=>{
     io.on('connection', (socket) => {
        
@@ -39,6 +41,19 @@ const handleSockets = (io)=>{
             io.to(contact).emit("updateContacT",updateContact);
           })
         })
+
+
+        socket.emit('playerColor', currentPlayerColor);
+        currentPlayerColor = currentPlayerColor === 'w' ? 'b' : 'w';
+      
+        socket.on('move', (move) => {
+          socket.broadcast.emit('move', move);
+        });
+      
+        socket.on('joinGame', () => {
+          io.emit('playerColor', currentPlayerColor);
+          currentPlayerColor = currentPlayerColor === 'w' ? 'b' : 'w';
+        });
 
 
         socket.on('disconnect', () => {

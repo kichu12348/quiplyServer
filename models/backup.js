@@ -47,7 +47,16 @@ const backupSchema = new mongoose.Schema({
       howManyRead:{
           type:Number,
           default:0
-      }
+      },
+      isImage:{
+          type:Boolean,
+          default:false
+      },
+        imageUri:{
+            type:String,
+            default:null
+        },
+        
     },
   ],
 });
