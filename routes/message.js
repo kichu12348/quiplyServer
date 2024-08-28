@@ -9,6 +9,7 @@ const {
   deleteBackup,
   uploadImageChunks,
   sendFileToClient,
+  deleteFileErrorHandler
 } = require("../controllers/message");
 
 router.post("/delete", async (req, res) => {
@@ -67,5 +68,6 @@ const upload = multer({ storage: storage });
 
 router.post("/uploadFile",upload.single("chunk"),uploadImageChunks);
 router.get("/downloadFile",sendFileToClient);
+router.post("/deleteFileErr",deleteFileErrorHandler);
 
 module.exports = router;

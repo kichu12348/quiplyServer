@@ -216,40 +216,54 @@ const deleteImageFile = (fileName, callback) => {
   });
 };
 
+//low level function bettah dan multer
 async function uploadImageChunks(req, res) {
-  const { chunk, chunkIdx, totalChunks, fileName } = req.body;
-  const uploadDir = path.join(__dirname, "../uploads");
-  const filePath = path.join(uploadDir, fileName);
+  try {
+    const { chunk, chunkIdx, totalChunks, fileName } = req.body;
+    const uploadDir = path.join(__dirname, "../uploads");
+    const filePath = path.join(uploadDir, fileName);
 
-  // check if uploads dir exists
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
+    // Check if uploads dir exists, creates one if not
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
 
-
-  //append the chunk
-  if (fs.existsSync(filePath)) {
-    fs.appendFileSync(filePath, Buffer.from(chunk, "base64"));
-  } else {
-    // Create the file and write the first chunk
-    fs.writeFileSync(filePath, Buffer.from(chunk, "base64"));
-  }
-
-  // Check if its the last chunk
-  if (chunkIdx === totalChunks - 1) {
-    return res.status(200).json({
-      success: true,
-      done: true,
-      uri: fileName,
+    // Append or create the file
+    if (fs.existsSync(filePath)) {
+      fs.appendFileSync(filePath, Buffer.from(chunk, "base64"));
+    } else {
+      fs.writeFileSync(filePath, Buffer.from(chunk, "base64"));
+    }
+    // checks If its the last chunk if so return success
+    if (chunkIdx === totalChunks - 1) {
+     
+      return res.status(200).json({
+        success: true,
+        done: true,
+        uri: fileName,
+      });
+    } else {
+      return res.json({
+        success: true,
+        done: false,
+        uri: null,
+      });
+    }
+  } catch (error) {
+    await deleteImageFile(req.body.fileName, (err, deleted) => {
+      if (err) {
+        console.log(err);
+      }
     });
-  } else {
-    return res.status(200).json({
-      success: true,
+    return res.json({
+      success: false,
       done: false,
       uri: null,
+      error: error.message
     });
   }
 }
+
 
 async function sendFileToClient(req, res) {
   const { fileName } = req.query;
@@ -257,17 +271,29 @@ async function sendFileToClient(req, res) {
   const filePath = path.join(__dirname, "../uploads", fileName);
 
   if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ success: false, message: "File not found" });
+    return res.json({ success: false, message: "File not found" });
   }
 
   res.download(filePath, fileName, (err) => {
     if (err) {
       console.error("Error downloading file:", err);
-      res
-        .status(500)
-        .json({ success: false, message: "Error downloading file" });
+      res.json({ success: false, message: "Error downloading file" });
     }
   });
+}
+
+async function deleteFileErrorHandler(req, res) {
+ try{
+    const {fileName} = req.body;
+    await deleteImageFile(fileName,(err,deleted)=>{
+      if(err){
+        return res.json({success:false,message:err.message});
+      }
+      return res.json({success:true,message:"File deleted successfully"});
+    });
+ }catch(err){
+    return res.json({success:false,message:err.message});
+ }
 }
 
 module.exports = {
@@ -279,4 +305,5 @@ module.exports = {
   deleteBackup,
   uploadImageChunks,
   sendFileToClient,
+  deleteFileErrorHandler,
 };
