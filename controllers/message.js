@@ -46,6 +46,14 @@ const addMessage = async ({ message }) => {
   }
 };
 
+//checks if the file exists
+async function checkIfFileExists(fileName) {
+  if (!fileName) return false;
+  const filePath = path.join(__dirname, "../uploads", fileName);
+  return fs.existsSync(filePath);
+}
+
+//checks for messages in the database and returns them
 const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
   try {
     const howManyRead = noOfMembers - 1;
@@ -55,6 +63,10 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
       return { success: false, messages: [] };
     }
     messages.forEach(async (message) => {
+      if (message.isImage && !checkIfFileExists(message.imageUri)) {
+        await Message.findOneAndDelete({ id: message.id });
+        return;
+      };
       if (message.sender !== userId && isGroup) {
         if (message.readBy.includes(userId)) {
           return;
@@ -76,16 +88,16 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
             imageUri: message.imageUri,
           });
           if (message.howManyRead >= howManyRead) {
-          setTimeout(async () => {
-            if (message.isImage) {
-              await deleteImageFile(message.imageUri,(err,deleted)=>{
-                if(err){
-                  console.log(err);
-                }
-              });
-            }
-            await Message.findOneAndDelete({ id: message.id });
-          }, 3000);
+            setTimeout(async () => {
+              if (message.isImage) {
+                await deleteImageFile(message.imageUri, (err, deleted) => {
+                  if (err) {
+                    console.log(err);
+                  }
+                });
+              }
+              await Message.findOneAndDelete({ id: message.id });
+            }, 3000);
           } else {
             message.save();
           }
@@ -114,6 +126,8 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
   }
 };
 
+
+//deletes messages from the database and the image file if it exists
 const deleteMessages = async ({
   messageId,
   isGroup,
@@ -194,6 +208,8 @@ const deleteBackup = async (id) => {
   }
 };
 
+
+//deletes the image file
 const deleteImageFile = (fileName, callback) => {
   const filePath = path.join(__dirname, "../uploads", fileName);
 
@@ -236,7 +252,6 @@ async function uploadImageChunks(req, res) {
     }
     // checks If its the last chunk if so return success
     if (chunkIdx === totalChunks - 1) {
-     
       return res.status(200).json({
         success: true,
         done: true,
@@ -259,11 +274,10 @@ async function uploadImageChunks(req, res) {
       success: false,
       done: false,
       uri: null,
-      error: error.message
+      error: error.message,
     });
   }
 }
-
 
 async function sendFileToClient(req, res) {
   const { fileName } = req.query;
@@ -283,17 +297,17 @@ async function sendFileToClient(req, res) {
 }
 
 async function deleteFileErrorHandler(req, res) {
- try{
-    const {fileName} = req.body;
-    await deleteImageFile(fileName,(err,deleted)=>{
-      if(err){
-        return res.json({success:false,message:err.message});
+  try {
+    const { fileName } = req.body;
+    await deleteImageFile(fileName, (err, deleted) => {
+      if (err) {
+        return res.json({ success: false, message: err.message });
       }
-      return res.json({success:true,message:"File deleted successfully"});
+      return res.json({ success: true, message: "File deleted successfully" });
     });
- }catch(err){
-    return res.json({success:false,message:err.message});
- }
+  } catch (err) {
+    return res.json({ success: false, message: err.message });
+  }
 }
 
 module.exports = {
