@@ -47,7 +47,7 @@ const addMessage = async ({ message }) => {
 };
 
 //checks if the file exists
-async function checkIfFileExists(fileName) {
+function checkIfFileExists(fileName){
   if (!fileName) return false;
   const filePath = path.join(__dirname, "../uploads", fileName);
   return fs.existsSync(filePath);
