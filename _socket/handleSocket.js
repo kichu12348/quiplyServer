@@ -3,6 +3,10 @@ const {addMessage}=require('../controllers/message')
 
 let currentPlayerColor = 'w';
 
+
+
+
+
 const handleSockets = (io)=>{
     io.on('connection', (socket) => {
        
