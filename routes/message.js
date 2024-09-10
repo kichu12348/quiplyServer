@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const multer = require("multer");
 const { Auth } = require("../services/auth");
 const {
   checkMessages,
@@ -63,10 +62,8 @@ router.post("/deleteBackup", Auth, async (req, res) => {
   return res.json({ success: false });
 });
 
-const storage = multer.memoryStorage(); // Store chunks in memory temporarily
-const upload = multer({ storage: storage });
 
-router.post("/uploadFile",upload.single("chunk"),uploadImageChunks);
+router.post("/uploadFile",uploadImageChunks);
 router.get("/downloadFile",sendFileToClient);
 router.post("/deleteFileErr",deleteFileErrorHandler);
 

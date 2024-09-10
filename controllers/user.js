@@ -44,7 +44,14 @@ const addContact = async (req, res) => {
         return res.json({ error: "User not found", success: false });
       }
       if (user.contacts.find((c) => c.contact._id.toString() === contactId)) {
-        return res.json({ error: "Contact already exists", success: false });
+        return res.json({ error: "Contact already exists", success: false,contact:{
+          username:contact.username,
+          id:contact._id,
+          roomID:user.contacts.find((c) => c.contact._id.toString() === contactId).roomID,
+          time:Date.now(),
+          isGroup:false,
+          noOfMembers:0
+        } });
       }
       const roomID = randomString(16);
       user.contacts.push({contact:contactId,roomID:roomID});
