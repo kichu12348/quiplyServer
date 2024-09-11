@@ -40,7 +40,13 @@ const songList =[{
   image:"roi.jpg",
   title: "Roi",
   id:"f17ebfc9-a963-4363-9970-deu897ea81c7e0"
-}];
+},{
+ song:"goth.mp3",
+ image:"goth.png",
+ title:"Goth",
+ id:"hehehebeiygejsush1273-678ghe"
+}
+];
 
 
 function sendSongList(req, res) {
