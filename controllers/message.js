@@ -2,6 +2,13 @@ const Message = require("../models/message");
 const Backup = require("../models/backup");
 const fs = require("fs");
 const path = require("path");
+const {createClient}=require("@supabase/supabase-js");
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
 
 const addMessage = async ({ message }) => {
   const {
@@ -49,8 +56,7 @@ const addMessage = async ({ message }) => {
 //checks if the file exists
 function checkIfFileExists(fileName){
   if (!fileName) return false;
-  const filePath = path.join(__dirname, "../uploads", fileName);
-  return fs.existsSync(filePath);
+  return true;
 }
 
 //checks for messages in the database and returns them
@@ -210,26 +216,9 @@ const deleteBackup = async (id) => {
 
 
 //deletes the image file
-const deleteImageFile = (fileName, callback) => {
-  const filePath = path.join(__dirname, "../uploads", fileName);
-
-  fs.access(filePath, (err) => {
-    if (err) {
-      if (err.code === "ENOENT") {
-        return callback(null, false);
-      } else {
-        return callback(err, false);
-      }
-    }
-
-    fs.unlink(filePath, (unlinkErr) => {
-      if (unlinkErr) {
-        return callback(unlinkErr, false);
-      }
-
-      callback(null, true);
-    });
-  });
+const deleteImageFile = async (fileName, callback) => {
+  await supabase.storage.from("images").remove([fileName]);
+  return callback(null, true);
 };
 
 //low level function bettah dan multer
@@ -320,4 +309,5 @@ module.exports = {
   uploadImageChunks,
   sendFileToClient,
   deleteFileErrorHandler,
+  supabase,
 };

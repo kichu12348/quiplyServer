@@ -10,8 +10,10 @@ const port = process.env.PORT
 const path = require('path');
 
 
+
 //connect to db
 connectToDb(process.env.MONGO_URI)
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'I am alive' });
