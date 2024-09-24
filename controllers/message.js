@@ -53,11 +53,7 @@ const addMessage = async ({ message }) => {
   }
 };
 
-//checks if the file exists
-function checkIfFileExists(fileName){
-  if (!fileName) return false;
-  return true;
-}
+
 
 //checks for messages in the database and returns them
 const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
@@ -69,10 +65,6 @@ const checkMessages = async ({ roomID, isGroup, noOfMembers }, userId) => {
       return { success: false, messages: [] };
     }
     messages.forEach(async (message) => {
-      if (message.isImage && !checkIfFileExists(message.imageUri)) {
-        await Message.findOneAndDelete({ id: message.id });
-        return;
-      };
       if (message.sender !== userId && isGroup) {
         if (message.readBy.includes(userId)) {
           return;
